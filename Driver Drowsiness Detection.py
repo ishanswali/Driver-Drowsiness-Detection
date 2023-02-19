@@ -13,6 +13,7 @@ from EAR import eye_aspect_ratio
 from MAR import mouth_aspect_ratio
 from HeadPose import getHeadTiltAndCoords
 import threading
+from alertDriver import AlertSystem
 
 # initialize dlib's face detector (HOG-based) and then create the
 # facial landmark predictor
