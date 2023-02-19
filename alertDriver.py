@@ -107,3 +107,17 @@ def AlertSystem():
 
         # Pause the loop for a short time to avoid excessive CPU usage
         time.sleep(0.01)
+
+
+import machine
+import time
+
+# set up the LED on GP17
+
+# set up the UART object
+uart = machine.UART(0, baudrate=9600)
+
+while True:
+    if uart.any():
+        command = uart.read().decode().strip()
+        AlertSystem()
