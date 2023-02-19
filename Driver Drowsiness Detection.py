@@ -7,11 +7,12 @@ import imutils
 import time
 import dlib
 import math
-from cv2 import cv2
+import cv2
 import numpy as np
 from EAR import eye_aspect_ratio
 from MAR import mouth_aspect_ratio
 from HeadPose import getHeadTiltAndCoords
+import threading
 
 # initialize dlib's face detector (HOG-based) and then create the
 # facial landmark predictor
@@ -34,12 +35,12 @@ frame_height = 576
 # loop over the frames from the video stream
 # 2D image points. If you change the image, you need to change vector
 image_points = np.array([
-    (359, 391),     # Nose tip 34
-    (399, 561),     # Chin 9
-    (337, 297),     # Left eye left corner 37
-    (513, 301),     # Right eye right corne 46
-    (345, 465),     # Left Mouth corner 49
-    (453, 469)      # Right mouth corner 55
+    (359, 391),  # Nose tip 34
+    (399, 561),  # Chin 9
+    (337, 297),  # Left eye left corner 37
+    (513, 301),  # Right eye right corne 46
+    (345, 465),  # Left Mouth corner 49
+    (453, 469)  # Right mouth corner 55
 ], dtype="double")
 
 (lStart, lEnd) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"]
@@ -53,7 +54,18 @@ COUNTER = 0
 # grab the indexes of the facial landmarks for the mouth
 (mStart, mEnd) = (49, 68)
 
+blinkCount = 0
+yawnCount = 0
+
+def reset_variable():
+    yawnCount = 0
+    blinkCount = 0
+    # Schedule the function to run again in 10 minutes
+    threading.Timer(60, reset_variable).start()
+
+
 while True:
+
     # grab the frame from the threaded video stream, resize it to
     # have a maximum width of 400 pixels, and convert it to
     # grayscale
@@ -69,7 +81,7 @@ while True:
     # number of faces on the frame
     if len(rects) > 0:
         text = "{} face(s) found".format(len(rects))
-        print(text)
+
 
     # loop over the face detections
     for rect in rects:
@@ -106,7 +118,10 @@ while True:
             # if the eyes were closed for a sufficient number of times
             # then show the warning
             if COUNTER >= EYE_AR_CONSEC_FRAMES:
-              print("Eyes Closed!")
+                print("Eyes Closed!")
+                blinkCount += 1
+                if blinkCount <= 10:
+                    print("DROWSY ALERT" + " BLINK COUNT: "+str(blinkCount))
             # otherwise, the eye aspect ratio is not below the blink
             # threshold, so reset the counter and alarm
         else:
@@ -121,12 +136,16 @@ while True:
         mouthHull = cv2.convexHull(mouth)
 
         cv2.drawContours(frame, [mouthHull], -1, (0, 255, 0), 1)
-        cv2.putText(frame, "MAR: {:.2f}".format(mar), (650, 20), 
+        cv2.putText(frame, "MAR: {:.2f}".format(mar), (650, 20),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 
         # Draw text if mouth is open
         if mar > MOUTH_AR_THRESH:
+            yawnCount += 1
             print("Yawning!")
+            if yawnCount > 2:
+                print("DROWSY ALERT" + " YAWN COUNT: "+str(yawnCount))
+
 
 
         # loop over the (x, y)-coordinates for the facial landmarks
@@ -193,19 +212,18 @@ while True:
                 cv2.putText(frame, str(i + 1), (x - 10, y - 10),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
 
-        #Draw the determinant image points onto the person's face
+        # Draw the determinant image points onto the person's face
         for p in image_points:
             cv2.circle(frame, (int(p[0]), int(p[1])), 3, (0, 0, 255), -1)
 
-        (head_tilt_degree, start_point, end_point, 
-            end_point_alt) = getHeadTiltAndCoords(size, image_points, frame_height)
+        (head_tilt_degree, start_point, end_point,
+         end_point_alt) = getHeadTiltAndCoords(size, image_points, frame_height)
 
         cv2.line(frame, start_point, end_point, (255, 0, 0), 2)
         cv2.line(frame, start_point, end_point_alt, (0, 0, 255), 2)
 
         if head_tilt_degree:
             print('Head Tilt Degree: ' + str(head_tilt_degree[0]))
-
 
         # extract the mouth coordinates, then use the
         # coordinates to compute the mouth aspect ratio
