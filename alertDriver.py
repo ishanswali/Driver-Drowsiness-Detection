@@ -4,9 +4,13 @@ import board
 import digitalio
 import pwmio
 import time
+import adafruit_bus_device
+
 # Configure the internal GPIO connected to the LED as a digital output
 
 def AlertSystem():
+    
+    
     led = digitalio.DigitalInOut(board.GP16)
     led.direction = digitalio.Direction.OUTPUT
 
@@ -73,7 +77,7 @@ def AlertSystem():
         led.value = False  # Turn off the LED
         time.sleep(0.15)  # wait 0.5 seconds
         # Initialize the PWM signal to control the motor speed
-        motor_pwm = pwmio.PWMOut(motor_pin2, frequency=motor_pwm_frequency, duty_cycle=0)
+        #motor_pwm = pwmio.PWMOut(motor_pin2, frequency=motor_pwm_frequency, duty_cycle=0)
 
         # Define the duration to run the motor (in seconds)
         motor_run_duration = 5.0
@@ -82,7 +86,7 @@ def AlertSystem():
         motor1.value = True
 
         # Start the PWM signal to control the motor speed
-        motor_pwm.duty_cycle = int(motor_pwm_duty_cycle * 65535)
+        #motor_pwm.duty_cycle = int(motor_pwm_duty_cycle * 65535)
 
         # Wait for the motor to run for the specified duration
         time.sleep(motor_run_duration)
@@ -91,7 +95,7 @@ def AlertSystem():
         motor1.value = False
 
         # Stop the PWM signal
-        motor_pwm.duty_cycle = 0
+        #motor_pwm.duty_cycle = 0
         for i in range(buzz_count):
             # Turn the buzzer on
             buzzer.value = True
@@ -109,15 +113,14 @@ def AlertSystem():
         time.sleep(0.01)
 
 
-import machine
-import time
+AlertSystem()
 
 # set up the LED on GP17
 
 # set up the UART object
-uart = machine.UART(0, baudrate=9600)
+"""uart = adafruit_bus_device.UARTDevice('/dev/ttyACM0', baudrate=9600)
 
 while True:
-    if uart.any():
+    if uart.in_waiting > 0:
         command = uart.read().decode().strip()
-        AlertSystem()
+        AlertSystem()"""
