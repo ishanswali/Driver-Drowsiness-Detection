@@ -123,6 +123,7 @@ while True:
                 blinkCount += 1
                 if blinkCount <= 10:
                     print("DROWSY ALERT" + " BLINK COUNT: "+str(blinkCount))
+                    AlertSystem()
             # otherwise, the eye aspect ratio is not below the blink
             # threshold, so reset the counter and alarm
         else:
@@ -146,6 +147,7 @@ while True:
             print("Yawning!")
             if yawnCount > 2:
                 print("DROWSY ALERT" + " YAWN COUNT: "+str(yawnCount))
+                AlertSystem()
 
 
 
@@ -225,6 +227,8 @@ while True:
 
         if head_tilt_degree:
             print('Head Tilt Degree: ' + str(head_tilt_degree[0]))
+            if head_tilt_degree < 50:
+                AlertSystem()
 
         # extract the mouth coordinates, then use the
         # coordinates to compute the mouth aspect ratio
